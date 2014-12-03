@@ -148,11 +148,10 @@ public class Communicator implements SerialPortEventListener {
                     entrada += logText;
                     if (entrada.indexOf("S011000000000E") != -1 || entrada.indexOf("S010000000000E") != -1) {
 //                        entrada = "";
-                        finalizarLlegada(1,1);                        
-                    }
-                    else if (entrada.indexOf("S006") != -1 && entrada.length() >= 28) {
+                        finalizarLlegada(1, 1);
+                    } else if (entrada.indexOf("S006") != -1 && entrada.length() >= 28) {
 //                        entrada = "";
-                        setearCuentas();                        
+                        setearCuentas();
                     }
                 }
             } catch (IOException e) {
@@ -181,15 +180,16 @@ public class Communicator implements SerialPortEventListener {
         TorniqueteDAO dao = new TorniqueteDAO();
         int entradaRegistrar = 0;
         int salidaRegistrar = 0;
-        if (entrada.indexOf("S011000000000E") != -1)
+        if (entrada.indexOf("S011000000000E") != -1) {
             salidaRegistrar = 1;
-        else if (entrada.indexOf("S010000000000E") != -1)
+        } else if (entrada.indexOf("S010000000000E") != -1) {
             entradaRegistrar = 1;
-        else if (entrada.indexOf("S006") != -1) {
+        } else if (entrada.indexOf("S006") != -1) {
             entradaRegistrar = input;
             salidaRegistrar = output;
         }
-        dao.registrarIO(GUI2.torniquete_id, entradaRegistrar, salidaRegistrar);
+        dao.registrarIO(GUI2.brazalete_id, GUI2.torniquete_id, entradaRegistrar, salidaRegistrar);
+        GUI2.brazalete_id = 0;
         entrada = "";
         dao.desconectar();
     }
@@ -215,7 +215,7 @@ public class Communicator implements SerialPortEventListener {
         writeData(TIMEOUT, TIMEOUT, mensaje);
         System.out.println("Enviado: " + mensaje);
     }
-    
+
     public void desbloqueaEntrada() {
         String mensaje = "S009000000E2F";
         writeData(TIMEOUT, TIMEOUT, mensaje);
@@ -225,7 +225,7 @@ public class Communicator implements SerialPortEventListener {
         String mensaje = "S006000000E20";
         writeData(TIMEOUT, TIMEOUT, mensaje);
     }
-    
+
     public void setearCuentas() {
         if (entrada.indexOf("S006000") != -1) {
             TorniqueteDAO dao = new TorniqueteDAO();
@@ -245,8 +245,9 @@ public class Communicator implements SerialPortEventListener {
                 e.printStackTrace();
             }
             dao.desconectar();
-        } else 
+        } else {
             System.out.println("Contador de troniquete averiado");
+        }
         entrada = "";
     }
 

@@ -22,58 +22,65 @@ public class TorniqueteDAO {
         try {
             connection.close();
         } catch (SQLException e) {
-            
+
         }
     }
-    
-    public void registrarIO(int id, int input, int output) {
-        boolean respuesta = false;
-        boolean respuesta1 = false;
-        boolean respuesta2 = false;
-        boolean respuesta3 = false;
+
+    public void registrarIO(int brazalete, int id, int input, int output) {
+        boolean respuesta = true;
+        boolean respuesta1 = true;
+        boolean respuesta2 = true;
+        boolean respuesta3 = true;
         try {
             connection.setAutoCommit(false);
             Statement statement = connection.createStatement();
             if (input > 0) {
                 for (int i = 0; i < input; i++) {
-                    respuesta = statement.execute("INSERT INTO entradas_salidas(torniquete_id, fecha, tipo) VALUE (" + id + ", NOW(), I)");
-                    if (!respuesta)
+                    respuesta = statement.execute("INSERT INTO entradas_salidas(brazalete_id, torniquete_id, fecha, tipo) VALUE (" +brazalete+", " + id + ", NOW(), 'I')");
+                    System.out.println("respuesta " + respuesta);
+                    if (respuesta) {
                         break;
+                    }
                 }
-                if (respuesta && output == 0)
-                    respuesta1 = true;
+                if (!respuesta && output == 0) {
+                    respuesta1 = false;
+                }
             }
             if (output > 0) {
                 for (int i = 0; i < output; i++) {
-                    respuesta1 = statement.execute("INSERT INTO entradas_salidas(torniquete_id, fecha, tipo) VALUE (" + id + ", NOW(), O)");
-                    if (!respuesta1)
+                    respuesta1 = statement.execute("INSERT INTO entradas_salidas(brazalete_id, torniquete_id, fecha, tipo) VALUE ("+brazalete+", " + id + ", NOW(), 'O')");
+                    if (respuesta1) {
                         break;
+                    }
                 }
-                if (respuesta1 && input == 0)
-                    respuesta = true;
+                if (!respuesta1 && input == 0) {
+                    respuesta = false;
+                }
             }
             statement.close();
-            if (respuesta && respuesta1) {
+            if (!respuesta && !respuesta1) {
                 Date fecha = new Date();
                 SimpleDateFormat Formateador = new SimpleDateFormat("yyyy-MM-dd");
                 String Fecha = Formateador.format(fecha);
                 boolean verificador = registrarActualizar(Fecha);
-                if (verificador)
+                if (verificador) {
                     respuesta2 = contarTodosDias(Fecha, input, output);
-                else
+                } else {
                     respuesta2 = inOutTodosDias(Fecha, input, output);
-                if (respuesta2) {
+                }
+                if (!respuesta2) {
                     respuesta3 = addContador(id, input, output);
                 }
             }
-            if (respuesta3)
+            if (!respuesta3) {
                 connection.commit();
-            else
+            } else {
                 connection.rollback();
+            }
         } catch (SQLException e) {
         }
     }
-    
+
     public boolean addContador(int id, int input, int output) {
         boolean respuesta = false;
         try {
@@ -118,18 +125,21 @@ public class TorniqueteDAO {
      * @return 0 Si la terjeta esta registrada en la base de datos 1 si no se
      * encuentra en el sistema -1 si hay un error en la consulta
      */
-    public int validarTarjeta(String codigo) { //, String torniquete_id
-        System.out.println("code " + codigo);
-        String sql = "SELECT id FROM bracelets WHERE cod_barras = '" + codigo +"'";
+    public int validarTarjeta(String codigo, String fecha) { //, String torniquete_id
+        String sql = "SELECT id, tipo_brazalete_id FROM brazaletes WHERE cod_barras = '" + codigo + "' AND fecha IS NOT NULL AND (fecha = '" + fecha + "' OR fecha = '2000-01-01')";
         int retornar = -1;
         try {
             Statement statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(sql);
             if (rs != null) {
                 if (rs.next()) {
-                    retornar = 0;
+                    if (rs.getInt("tipo_brazalete_id") == 1) {
+                        retornar = 0;
+                    } else {
+                        retornar = rs.getInt("id");
+                    }
                 } else {
-                    retornar = 1;
+                    retornar = -1;
                 }
                 rs.close();
             }
@@ -149,7 +159,7 @@ public class TorniqueteDAO {
      * si se va a actualizar
      */
     public boolean registrarActualizar(String Fecha) {
-        String sql = "SELECT id FROM entradas_salidas_dias_parque WHERE fecha = '" + Fecha + "'";
+        String sql = "SELECT id FROM entradas_salidas_dias_parques WHERE fecha = '" + Fecha + "'";
         boolean retornar = false;
         try {
             Statement statement = connection.createStatement();
@@ -200,10 +210,11 @@ public class TorniqueteDAO {
     }
 
     public void actualizarEstado(int id, int estado) throws SQLException {
-        if (estado == 0)
+        if (estado == 0) {
             estado = 1;
-        else
+        } else {
             estado = 0;
+        }
         try {
             Statement statement = connection.createStatement();
             statement.execute("UPDATE torniquetes SET estado = " + estado + " WHERE id = " + id);
@@ -212,7 +223,7 @@ public class TorniqueteDAO {
             e.printStackTrace();
         }
     }
-    
+
     public void reset(int id) throws SQLException {
         try {
             Statement statement = connection.createStatement();
@@ -222,7 +233,7 @@ public class TorniqueteDAO {
             e.printStackTrace();
         }
     }
-    
+
     public ArrayList consultarInOut(int id) throws SQLException {
         int entradas = 0;
         int salidas = 0;
@@ -244,5 +255,5 @@ public class TorniqueteDAO {
         }
         return cantidades;
     }
-    
+
 }

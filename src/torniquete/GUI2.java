@@ -32,6 +32,7 @@ public class GUI2 extends javax.swing.JFrame {
     static SimpleDateFormat Formateador = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     String fecLectura = Formateador.format(fecha);
     String lectura = "";
+    static int brazalete_id = 0;
     Communicator communicator = null;
     KeybindingController keybindingController = null;
 //    ServerSocket serverAddr = null;
@@ -207,7 +208,7 @@ public class GUI2 extends javax.swing.JFrame {
         Date date = new Date();
         String FecActual = Formateador.format(date);
         boolean Bandera = false;
-        
+
         if (codigo.equals(lectura)) {
             Calendar calFechaInicial = Calendar.getInstance();
             Calendar calFechaFinal = Calendar.getInstance();
@@ -232,30 +233,29 @@ public class GUI2 extends javax.swing.JFrame {
             fecLectura = FecActual;
             try {
                 TorniqueteDAO dao = new TorniqueteDAO();
-                int resultado = dao.validarTarjeta(codigo);
+                int resultado = dao.validarTarjeta(codigo, fecLectura.substring(0, 10));
 
-                switch (resultado) {
-                    case 0:
-                        communicator.bloqueaDesbloquea(estado);
-                        dao.actualizarEstado(torniquete_id, estado);
-                        if (estado == 0) {
-                            estado = 1;
-                            jLabel1.setText("Torniquete desbloqueado");
-                        } else {
-                            estado = 0;
-                            jLabel1.setText("Torniquete bloqueado");
-                        }
-                        lblLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/good.png")));
-                        break;
-                    case 1:
-                        communicator.desbloqueaEntrada();
-                        lblLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/good.png")));
-                        jLabel1.setText("Desbloqueado para una entrada");
-                        break;
-                    case -1:
-                        lblLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/warning.png")));
-                        jLabel1.setText("Error al ejecutar la consulta");
-                        break;
+                if (resultado == 0) {
+
+                    communicator.bloqueaDesbloquea(estado);
+                    dao.actualizarEstado(torniquete_id, estado);
+                    if (estado == 0) {
+                        estado = 1;
+                        jLabel1.setText("Torniquete desbloqueado");
+                    } else {
+                        estado = 0;
+                        jLabel1.setText("Torniquete bloqueado");
+                    }
+                    lblLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/good.png")));
+                } else if (resultado == -1) {
+                    lblLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/warning.png")));
+                    jLabel1.setText("Brazalete no válido");
+
+                } else {
+                    communicator.desbloqueaEntrada();
+                    brazalete_id = resultado;
+                    lblLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/good.png")));
+                    jLabel1.setText("Desbloqueado para una entrada");
                 }
                 dao.desconectar();
             } catch (SQLException ex) {

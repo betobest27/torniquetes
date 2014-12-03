@@ -23,9 +23,9 @@ public class Conexion {
 //            String pwd = "enovasoft";
 //            String servidor = "jdbc:mysql://172.16.1.50/torniquetes";
 			
-            String uname = "root";
-            String pwd = "";
-            String servidor = "jdbc:mysql://localhost/torniquetes";
+            String uname = "enova";
+            String pwd = "enova";
+            String servidor = "jdbc:mysql://192.168.0.17/aventura";
 
             Class.forName("com.mysql.jdbc.Driver");
             try	{
